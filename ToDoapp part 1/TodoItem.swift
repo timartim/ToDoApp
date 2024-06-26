@@ -64,7 +64,7 @@ extension TodoItem {
             deadline = nil
         }
         let importancyRaw = dict["importancy"] as? String ?? "average"
-        let importancy = Importance(rawValue: importancyRaw),
+        guard let importancy = Importance(rawValue: importancyRaw) else { return nil }
         return TodoItem(id: id, text: text, importancy: importancy, deadline: deadline, complete: complete, creationDate: creationDate, editDate: editDate)
     }
     var json: Any {
