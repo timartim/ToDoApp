@@ -31,7 +31,7 @@ final class FileCacheTest: XCTestCase {
 
     func testDeleteTask() {
         let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
-        fileCache.addNewTask(task: task)
+        var _ = fileCache.addNewTask(task: task)
         
         let deletedTask = fileCache.deleteTask(id: task.id)
         XCTAssertNotNil(deletedTask, "Task should be deleted successfully")
@@ -60,7 +60,7 @@ final class FileCacheTest: XCTestCase {
 
     func testSaveTasks() {
         let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
-        fileCache.addNewTask(task: task)
+        var _ = fileCache.addNewTask(task: task)
         let fileName = "testSaveTasks.txt"
         let fileManager = FileManager.default
         let tempDirectory = fileManager.temporaryDirectory
@@ -73,7 +73,7 @@ final class FileCacheTest: XCTestCase {
     }
     func testSaveAndLoadTask(){
         let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
-        fileCache.addNewTask(task: task)
+        var _ = fileCache.addNewTask(task: task)
         let fileName = "testSaveTasks.txt"
         let fileManager = FileManager.default
         let tempDirectory = fileManager.temporaryDirectory
