@@ -6,17 +6,19 @@
 //
 
 import Foundation
+import SwiftData
+
 enum Importance: String, Equatable {
     case low
     case average
     case high
 }
-struct TodoItem {
+class TodoItem: Identifiable, ObservableObject {
     var id: String
     var text: String
     var importancy: Importance
     var deadline: Date?
-    var complete: Bool
+    @Published var complete: Bool
     var creationDate: Date
     var editDate: Date?
     static let dateFormatter = ISO8601DateFormatter()
@@ -33,6 +35,12 @@ struct TodoItem {
         self.complete = complete
         self.creationDate = creationDate
         self.editDate = editDate
+    }
+    static func formattedDateRu(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "d MMMM"
+        return formatter.string(from: date)
     }
 }
 extension TodoItem {
@@ -68,7 +76,6 @@ extension TodoItem {
         return TodoItem(id: id, text: text, importancy: importancy, deadline: deadline, complete: complete, creationDate: creationDate, editDate: editDate)
     }
     var json: Any {
-        let editDateString = editDate.map { TodoItem.dateFormatter.string(from: $0) } ?? "nil"
         return """
         {"id": "\(id)","text": "\(text)",\(importancy != .average ? "\"importancy\": \"\(importancy.rawValue)\"," : "")"deadline": "\(deadline != nil ? TodoItem.dateFormatter.string(from: deadline!) : "")","complete": \(complete),"creationDate": "\(TodoItem.dateFormatter.string(from: creationDate))","editDate": "\(editDate != nil ? TodoItem.dateFormatter.string(from: editDate!) : "")"}
         """
