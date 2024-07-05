@@ -62,7 +62,6 @@ struct TaskCellView: View {
     }
 }
 
-//
 
 struct TaskCellView_Previews: PreviewProvider {
     static var previews: some View {

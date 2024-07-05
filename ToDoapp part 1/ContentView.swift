@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var showAddNewButtonView: Bool = false
     @State private var showingCompletedTasks: Bool = true
     @State private var isPresentingEditView: Bool = false
+    @State private var isPresentingCalendarView: Bool = false
     @State private var newItem = TodoItem(id: UUID().uuidString, text: "", importancy: .average, creationDate: Date())
 
     var body: some View {
@@ -21,6 +22,7 @@ struct ContentView: View {
 
                 VStack {
                     HStack {
+                        
                         Text("Выполнено \(completedCount)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -118,6 +120,24 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.bottom)
             }
                 .navigationTitle("Мои дела")
+                .toolbar(content: {
+                    ToolbarItem(placement: .topBarTrailing, content: {
+                        VStack{
+                            Button(action: {
+                                withAnimation{
+                                    isPresentingCalendarView.toggle()
+                                }
+                            }){
+                                HStack {
+                                    Image(systemName: "calendar")
+                                }
+                            }
+                            .sheet(isPresented: $isPresentingCalendarView, content: {
+                                CalendarViewControllerRepresentable(isPresented: $isPresentingCalendarView, todoItemList: .constant(todoItems))
+                            })
+                        }
+                    })
+                })
         }
             .sheet(isPresented: $isPresentingEditView) {
             EditTaskView(item: selectedItem ?? newItem, isPresented: $isPresentingEditView)
@@ -129,7 +149,6 @@ struct ContentView: View {
                         }
                     }
                 } else if !newItem.text.isEmpty {
-
                     todoItems.addNewTask(task: newItem)
                 }
             }
