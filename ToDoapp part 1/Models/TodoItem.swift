@@ -21,13 +21,15 @@ class TodoItem: Identifiable, ObservableObject {
     @Published var complete: Bool
     var creationDate: Date
     var editDate: Date?
+    var category: ItemCategory?
     static let dateFormatter = ISO8601DateFormatter()
     init(id: String = UUID().uuidString, text: String = "",
         importancy: Importance = .average,
         deadline: Date? = nil,
         complete: Bool = false,
         creationDate: Date = Date.now,
-        editDate: Date? = nil) {
+        editDate: Date? = nil,
+        category: ItemCategory? = nil) {
         self.id = id
         self.text = text
         self.importancy = importancy
@@ -35,6 +37,7 @@ class TodoItem: Identifiable, ObservableObject {
         self.complete = complete
         self.creationDate = creationDate
         self.editDate = editDate
+        self.category = category
     }
     static func formattedDateRu(_ date: Date) -> String {
         let formatter = DateFormatter()
