@@ -54,15 +54,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FE1ADEEB2C21B44700925CD8"
-            BuildableName = "ToDoapp part 1.app"
-            BlueprintName = "ToDoapp part 1"
-            ReferencedContainer = "container:ToDoapp part 1.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -6,19 +6,19 @@
 //
 
 import Foundation
-internal class FileCache{
+class FileCache {
     public private(set) var todoItem: [String: TodoItem]
     init(todoItem: [TodoItem]) {
         self.todoItem = [:]
-        for item in todoItem{
-            if (self.todoItem[item.id] == nil){
+        for item in todoItem {
+            if (self.todoItem[item.id] == nil) {
                 self.todoItem[item.id] = item
-            }else{
+            } else {
                 print("The item with id: \(item.id) already exists, rewriting task")
             }
         }
     }
-    public func loadTasks(fileURL: URL){
+    public func loadTasks(fileURL: URL) {
         do {
             let fileContent = try String(contentsOf: fileURL, encoding: .utf8)
             let lines = fileContent.split(separator: "\n")
@@ -30,13 +30,13 @@ internal class FileCache{
                     self.todoItem[String(id)] = todoItem
                 }
             }
-        } catch{
+        } catch {
             print("Ошибка при загрузке словаря из файла: \(error)")
         }
     }
-    public func saveTasks(fileURL: URL){
+    public func saveTasks(fileURL: URL) {
         var fileContent = "{\n"
-        for (key, item) in todoItem{
+        for (key, item) in todoItem {
             fileContent += "\(key)\\\\\(item.json)\n"
         }
         fileContent += "}\n"
@@ -46,12 +46,12 @@ internal class FileCache{
             print("Ошибка при записи в файл: \(error)")
         }
     }
-    public func addNewTask(task: TodoItem) -> Bool{
+    public func addNewTask(task: TodoItem) -> Bool {
         let ans: Bool = (self.todoItem[task.id] == nil);
         self.todoItem[task.id] = task
         return ans
     }
-    public func deleteTask(id: String) -> TodoItem?{
+    public func deleteTask(id: String) -> TodoItem? {
         return self.todoItem.removeValue(forKey: id)
     }
 }

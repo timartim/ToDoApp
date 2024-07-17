@@ -1,0 +1,24 @@
+disabled_rules: # отключение правил
+  - line_length
+
+opt_in_rules: # включение дополнительных правил
+  - empty_count
+  - explicit_init
+
+included:
+  - .
+
+excluded: # исключение файлов и директорий из проверки
+  - Carthage
+  - Pods
+
+line_length: 120 # максимальная длина строки
+
+custom_rules: # добавление пользовательских правил
+  name_identifier:
+    included: ".*"
+    name: "Name Identifier"
+    regex: 'id'
+    message: "Avoid using 'id' as a name identifier."
+    severity: error
+

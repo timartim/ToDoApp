@@ -59,7 +59,7 @@ class CalendarViewController: UIViewController, UITableViewDelegate, UITableView
             (TodoItem.formattedDateRu(key), value)
         }
         data = Dictionary(uniqueKeysWithValues: mappedDictionary)
-        if diffrentSection.count != 0 {
+        if diffrentSection.isEmpty {
             if !dates.contains(diffrentConst) {
                 dates.append(diffrentConst)
             }
