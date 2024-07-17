@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var todoItems = TodoItemArray(todoItems: [
-        ])
+    @StateObject private var todoItems = TodoItemArray(todoItems: createTodoItems(4))
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var completedCount: Int = 0
     @State private var selectedItem: TodoItem?
@@ -22,7 +21,6 @@ struct ContentView: View {
 
                 VStack {
                     HStack {
-                        
                         Text("Выполнено \(completedCount)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -173,6 +171,46 @@ struct ContentView: View {
             }
         }
     }
+}
+func createTodoItems(_ num: Int) -> [TodoItem] {
+    var items = [TodoItem]()
+    
+    let texts = [
+        "Long Task, Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids.",
+        "Call mom to check in and see how she's doing. Don't forget to ask.",
+        "Finish homework for the mathematics course, including all exercises from chapter 5 and review the notes for the upcoming test. Finish homework for the mathematics course, including all exercises from chapter 5 and review the notes for the upcoming test. Finish homework for the mathematics course, including all exercises from chapter 5 and review the notes for the upcoming test. Finish homework for the mathematics course, including all exercises from chapter 5 and review the notes for the upcoming test.",
+        "Clean the house thoroughly, including dusting all the furniture, vacuuming the carpets, and mopping the floors.",
+        "Prepare for the next quarter.",
+        "Go for a walk in the park to get some fresh air and a bit of exercise. Aim for at least 30 minutes of brisk walking.",
+        "Read a book on personal development.",
+        "Write a blog post about the latest trends in technology and how they are impacting our daily lives. Aim for at least 1000 words.",
+        "Workout session at the gym, focusing on strength training exercises. Don't forget to do a proper warm-up and cool-down.",
+        "Plan the trip to the mountains for the upcoming holiday. Make a list of all the necessary gear and supplies to pack."
+    ]
+    
+    let importanceLevels: [Importance] = [.low, .average, .high]
+    
+    for idx in 0..<num {
+        let text = texts[idx % texts.count]
+        let importance = importanceLevels[Int.random(in: 0..<importanceLevels.count)]
+        let isDone = Bool.random()
+        let creationDate = Date().addingTimeInterval(Double(idx) * 86400)
+        let deadline = Bool.random() ? Date().addingTimeInterval(Double(idx % 12) * 86400 + 86400) : nil
+        let hexColor = String(format: "#%06X", Int.random(in: 0...0xFFFFFF))
+        let item = TodoItem(
+            text: text,
+            importancy: importance,
+            deadline: deadline,
+            complete: isDone,
+            creationDate: creationDate,
+            editDate: nil,
+            category: nil
+        )
+        
+        items.append(item)
+    }
+    
+    return items
 }
 #Preview {
     ContentView()

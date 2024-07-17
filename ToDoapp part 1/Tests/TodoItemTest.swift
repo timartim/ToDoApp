@@ -72,5 +72,8 @@ final class TodoItemTest: XCTestCase {
         XCTAssertTrue(todo.complete)
         XCTAssertEqual(todo.creationDate, TodoItem.dateFormatter.date(from: "2024-06-01T09:00:00Z"))
         XCTAssertEqual(todo.editDate, TodoItem.dateFormatter.date(from: "2024-06-10T14:00:00Z"))
+        
+        
+        print("1234")
     }
 }
