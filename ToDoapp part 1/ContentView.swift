@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var todoItems = TodoItemArray(todoItems: createTodoItems(4))
+    @StateObject private var todoItems = TodoItemArray(todoItems: [])
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var completedCount: Int = 0
     @State private var selectedItem: TodoItem?
@@ -10,7 +10,9 @@ struct ContentView: View {
     @State private var isPresentingEditView: Bool = false
     @State private var isPresentingCalendarView: Bool = false
     @State private var newItem = TodoItem(id: UUID().uuidString, text: "", importancy: .average, creationDate: Date())
-
+    @State private var revision: Int = 0
+    private let networkingService = DefaultNetworkingService()
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -18,16 +20,15 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all) : Color(red: 0.97, green: 0.97, blue: 0.95, opacity: 1.0)
                     .edgesIgnoringSafeArea(.all))
                 
-
                 VStack {
                     HStack {
                         Text("Выполнено \(completedCount)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                             .padding(.top)
-
+                        
                         Spacer()
-
+                        
                         Button(action: {
                             withAnimation {
                                 showingCompletedTasks.toggle()
@@ -39,8 +40,8 @@ struct ContentView: View {
                                 .padding(.top)
                         }
                     }
-                        .padding(.horizontal)
-
+                    .padding(.horizontal)
+                    
                     ZStack {
                         Color.white
                             .cornerRadius(15)
@@ -54,26 +55,29 @@ struct ContentView: View {
                                             } else {
                                                 completedCount -= 1
                                             }
+                                            Task {
+                                                await updateItemOnServer(item: item)
+                                            }
                                         }
                                     }
-                                        .swipeActions(edge: .trailing) {
-                                            Button(role: .destructive) {
-                                                if let index = todoItems.todoItems.firstIndex(where: { $0.id == item.id }) {
-                                                    todoItems.deleteTask(idx: index)
-                                                }
-                                            } label: {
-                                                Label("", systemImage: "trash")
+                                    .swipeActions(edge: .trailing) {
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await deleteItemFromServer(id: item.id)
                                             }
-                                            Button {
-                                                selectedItem = item
-                                                isPresentingEditView = true
-                                            } label: {
-                                                Label("", systemImage: "info.circle")
-                                            }
-                                                .tint(.gray)
+                                        } label: {
+                                            Label("", systemImage: "trash")
+                                        }
+                                        Button {
+                                            selectedItem = item
+                                            isPresentingEditView = true
+                                        } label: {
+                                            Label("", systemImage: "info.circle")
+                                        }
+                                        .tint(.gray)
                                         
                                     }
-                                        .swipeActions(edge: .leading) {
+                                    .swipeActions(edge: .leading) {
                                         Button {
                                             withAnimation {
                                                 item.complete.toggle()
@@ -83,25 +87,28 @@ struct ContentView: View {
                                                     completedCount -= 1
                                                 }
                                             }
+                                            Task {
+                                                await updateItemOnServer(item: item)
+                                            }
                                         } label: {
                                             Label("Complete", systemImage: "checkmark")
                                         }
-                                            .tint(.green)
+                                        .tint(.green)
                                     }
-                                        .transition(.slide)
-                                        .animation(.easeInOut, value: showingCompletedTasks)
+                                    .transition(.slide)
+                                    .animation(.easeInOut, value: showingCompletedTasks)
                                 }
                             }
-                                .onDelete(perform: deleteItems)
+                            .onDelete(perform: deleteItems)
                         }
-                            .listStyle(PlainListStyle())
-                            .cornerRadius(15)
+                        .listStyle(PlainListStyle())
+                        .cornerRadius(15)
                     }
-                        .padding(.horizontal)
-
+                    .padding(.horizontal)
+                    
                     Spacer()
                 }
-
+                
                 VStack {
                     Spacer()
                     Button(action: {
@@ -115,55 +122,94 @@ struct ContentView: View {
                             .padding()
                     }
                 }
-                    .edgesIgnoringSafeArea(.bottom)
+                .edgesIgnoringSafeArea(.bottom)
             }
-                .navigationTitle("Мои дела")
-                .toolbar(content: {
-                    ToolbarItem(placement: .topBarTrailing, content: {
-                        VStack{
-                            Button(action: {
-                                withAnimation{
-                                    isPresentingCalendarView.toggle()
-                                }
-                            }){
-                                HStack {
-                                    Image(systemName: "calendar")
-                                }
+            .navigationTitle("Мои дела")
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing, content: {
+                    VStack{
+                        Button(action: {
+                            withAnimation{
+                                isPresentingCalendarView.toggle()
                             }
-                            .sheet(isPresented: $isPresentingCalendarView, content: {
-                                CalendarViewControllerRepresentable(isPresented: $isPresentingCalendarView, todoItemList: .constant(todoItems))
-                            })
+                        }){
+                            HStack {
+                                Image(systemName: "calendar")
+                            }
                         }
-                    })
+                        .sheet(isPresented: $isPresentingCalendarView, content: {
+                            CalendarViewControllerRepresentable(isPresented: $isPresentingCalendarView, todoItemList: .constant(todoItems))
+                        })
+                    }
                 })
+            })
         }
-            .sheet(isPresented: $isPresentingEditView) {
+        .sheet(isPresented: $isPresentingEditView) {
             EditTaskView(item: selectedItem ?? newItem, isPresented: $isPresentingEditView)
                 .onDisappear {
-                if let selectedItem = selectedItem {
-                    if !selectedItem.text.isEmpty {
-                        if !todoItems.todoItems.contains(where: { $0.id == selectedItem.id }) {
-                            todoItems.addNewTask(task: selectedItem)
+                    Task {
+                        if let selectedItem = selectedItem {
+                            if !selectedItem.text.isEmpty {
+                                if !todoItems.todoItems.contains(where: { $0.id == selectedItem.id }) {
+                                    todoItems.addNewTask(task: selectedItem)
+                                    await addItemToServer(item: selectedItem)
+                                } else {
+                                    await updateItemOnServer(item: selectedItem)
+                                }
+                            }
+                        } else if !newItem.text.isEmpty {
+                            todoItems.addNewTask(task: newItem)
+                            await addItemToServer(item: newItem)
                         }
                     }
-                } else if !newItem.text.isEmpty {
-                    todoItems.addNewTask(task: newItem)
                 }
+        }
+        .onAppear {
+            Task {
+                await loadTodoItems()
             }
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = TodoItem(id: UUID().uuidString, text: "New Task", creationDate: Date())
-            todoItems.addNewTask(task: newItem)
+    
+    private func addItemToServer(item: TodoItem) async {
+        let success = await networkingService.addItemToServer(todoItem: item, revision: revision)
+        if success {
+            await loadTodoItems()
         }
     }
-
+    
+    private func updateItemOnServer(item: TodoItem) async {
+        let success = await networkingService.updateItemOnServer(todoItem: item, revision: revision)
+        if success {
+            await loadTodoItems()
+        }
+    }
+    
+    private func deleteItemFromServer(id: String) async {
+        let success = await networkingService.deleteItemFromServer(id: id, revision: revision)
+        if success {
+            await loadTodoItems()
+        }
+    }
+    
+    private func loadTodoItems() async {
+        let (items, rev) = await networkingService.getListFromServer()
+        print("Revision before: \(revision)")
+        revision = rev
+        print("Revision after: \(revision)")
+        DispatchQueue.main.async {
+            todoItems.todoItems = items
+            completedCount = items.filter { $0.complete }.count
+        }
+    }
+    
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
                 let item = todoItems.todoItems[index]
+                Task {
+                    await deleteItemFromServer(id: item.id)
+                }
                 if item.complete {
                     completedCount -= 1
                 }
@@ -203,7 +249,7 @@ func createTodoItems(_ num: Int) -> [TodoItem] {
             deadline: deadline,
             complete: isDone,
             creationDate: creationDate,
-            editDate: nil,
+            editDate: Date.now,
             category: nil
         )
         

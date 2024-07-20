@@ -11,7 +11,39 @@ final class dataTaskTest: XCTestCase {
     override func tearDownWithError() throws {
         DDLog.removeAllLoggers()
     }
+    
+    func testNetworkingRequest() async throws {
+        func sendGetRequest() {
+            guard let url = URL(string: "https://beta.mrdekk.ru/todo") else {
+                DDLogInfo("Invalid URL")
+                return
+            }
 
+            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    DDLogInfo("Error: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let data = data else {
+                    DDLogInfo("No data received")
+                    return
+                }
+
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        DDLogInfo("JSON Response: \(json)")
+                    }
+                } catch let parsingError {
+                    DDLogInfo("Error parsing JSON: \(parsingError.localizedDescription)")
+                }
+            }
+
+            task.resume()
+        }
+        sendGetRequest()
+    }
+    
     func testSuccessfulRequest() async throws {
         let urlRequest = URLRequest(url: URL(string: "https://httpbin.org/get")!)
         do {

@@ -19,6 +19,8 @@
 		FE38118D2C2F1A9D00CC1582 /* TodoItemArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE38118C2C2F1A9D00CC1582 /* TodoItemArray.swift */; };
 		FE3811962C2F200000CC1582 /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3811952C2F200000CC1582 /* EditTaskView.swift */; };
 		FE3811982C2F201900CC1582 /* TaskCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3811972C2F201900CC1582 /* TaskCellView.swift */; };
+		FE75F7A42C48792E00FF44C3 /* NetworkingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE75F7A32C48792E00FF44C3 /* NetworkingService.swift */; };
+		FE75F7A62C48793E00FF44C3 /* DefaultNetworkingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE75F7A52C48793E00FF44C3 /* DefaultNetworkingService.swift */; };
 		FE7E68822C2645B70017B876 /* TodoItemTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7E68782C261F180017B876 /* TodoItemTest.swift */; };
 		FE7E68832C2645BB0017B876 /* FileCacheTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7E687A2C2620FF0017B876 /* FileCacheTest.swift */; };
 		FE841D222C4290D900DDB8EE /* dataTaskTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE841D212C4290D900DDB8EE /* dataTaskTest.swift */; };
@@ -69,6 +71,8 @@
 		FE38118C2C2F1A9D00CC1582 /* TodoItemArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItemArray.swift; sourceTree = "<group>"; };
 		FE3811952C2F200000CC1582 /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
 		FE3811972C2F201900CC1582 /* TaskCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCellView.swift; sourceTree = "<group>"; };
+		FE75F7A32C48792E00FF44C3 /* NetworkingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkingService.swift; sourceTree = "<group>"; };
+		FE75F7A52C48793E00FF44C3 /* DefaultNetworkingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultNetworkingService.swift; sourceTree = "<group>"; };
 		FE7E68782C261F180017B876 /* TodoItemTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItemTest.swift; sourceTree = "<group>"; };
 		FE7E687A2C2620FF0017B876 /* FileCacheTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileCacheTest.swift; sourceTree = "<group>"; };
 		FE841D212C4290D900DDB8EE /* dataTaskTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dataTaskTest.swift; sourceTree = "<group>"; };
@@ -189,6 +193,8 @@
 				FE38118C2C2F1A9D00CC1582 /* TodoItemArray.swift */,
 				FEB8B4932C37567200EF25E8 /* ItemCategory.swift */,
 				FEA613D22C46C0E200664E28 /* URLSession.swift */,
+				FE75F7A32C48792E00FF44C3 /* NetworkingService.swift */,
+				FE75F7A52C48793E00FF44C3 /* DefaultNetworkingService.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -451,6 +457,7 @@
 				FEB8B4942C37567200EF25E8 /* ItemCategory.swift in Sources */,
 				FE1ADEF42C21B44700925CD8 /* Item.swift in Sources */,
 				FE38118D2C2F1A9D00CC1582 /* TodoItemArray.swift in Sources */,
+				FE75F7A42C48792E00FF44C3 /* NetworkingService.swift in Sources */,
 				FE3811982C2F201900CC1582 /* TaskCellView.swift in Sources */,
 				FE3811962C2F200000CC1582 /* EditTaskView.swift in Sources */,
 				FEB8B4922C35C8CD00EF25E8 /* RoundedTableViewCell.swift in Sources */,
@@ -459,6 +466,7 @@
 				FEB8B48D2C358F0800EF25E8 /* CalendarViewController.swift in Sources */,
 				FE1ADF1E2C21B6A000925CD8 /* FileCache.swift in Sources */,
 				FE1ADEF02C21B44700925CD8 /* ToDoapp_part_1App.swift in Sources */,
+				FE75F7A62C48793E00FF44C3 /* DefaultNetworkingService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -629,6 +637,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ToDoapp-part-1-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -660,6 +669,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ToDoapp-part-1-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
