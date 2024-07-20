@@ -226,7 +226,7 @@ struct ContentView: View {
         }
     }
     private func checkIfDirty() async{
-        if(todoItems.isDirty){
+        if todoItems.isDirty {
             if let answer = await networkingService.synchronizeItemsWithServer(revision: revision){
                 todoItems.isDirty = true
                 todoItems.todoItems = answer.list
