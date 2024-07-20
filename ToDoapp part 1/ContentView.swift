@@ -172,23 +172,31 @@ struct ContentView: View {
     }
     
     private func addItemToServer(item: TodoItem) async {
+        await checkIfDirty()
         let success = await networkingService.addItemToServer(todoItem: item, revision: revision)
         if success {
             await loadTodoItems()
+        }else{
+            todoItems.isDirty = true
         }
     }
-    
     private func updateItemOnServer(item: TodoItem) async {
+        await checkIfDirty()
         let success = await networkingService.updateItemOnServer(todoItem: item, revision: revision)
         if success {
             await loadTodoItems()
+        }else{
+            todoItems.isDirty = true
         }
     }
     
     private func deleteItemFromServer(id: String) async {
+        await checkIfDirty()
         let success = await networkingService.deleteItemFromServer(id: id, revision: revision)
         if success {
             await loadTodoItems()
+        }else{
+            todoItems.isDirty = true
         }
     }
     
@@ -214,6 +222,15 @@ struct ContentView: View {
                     completedCount -= 1
                 }
                 todoItems.deleteTask(idx: index)
+            }
+        }
+    }
+    private func checkIfDirty() async{
+        if(todoItems.isDirty){
+            if let answer = await networkingService.synchronizeItemsWithServer(revision: revision){
+                todoItems.isDirty = true
+                todoItems.todoItems = answer.list
+                revision = answer.revision
             }
         }
     }

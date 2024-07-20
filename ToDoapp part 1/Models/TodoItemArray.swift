@@ -8,7 +8,7 @@
 import Foundation
 class TodoItemArray: ObservableObject, Codable {
     @Published public var todoItems: [TodoItem]
-
+    public var isDirty: Bool = false
     init(todoItems: [TodoItem] = []) {
         self.todoItems = todoItems
     }

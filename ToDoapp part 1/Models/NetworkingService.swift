@@ -7,10 +7,10 @@
 
 import Foundation
 protocol NetworkingService{
-    func getListFromServer() async -> ([TodoItem], String)
-    func getItemFromServer(id: String) async -> TodoItem?
-    func addItemToServer(todoItem: TodoItem, revision: String) async -> Bool
-    func updateItemOnServer(todoItem: TodoItem) async -> Bool
-    func deleteItemFromServer(id: String) async -> Bool
-    func synchronizeItemsWithServer(revision: String) async -> Bool
+    func getListFromServer() async -> ([TodoItem], Int) 
+    func getItemFromServer(id: String) async -> TodoItem? 
+    func addItemToServer(todoItem: TodoItem, revision: Int) async -> Bool 
+    func updateItemOnServer(todoItem: TodoItem, revision: Int) async -> Bool 
+    func deleteItemFromServer(id: String, revision: Int) async -> Bool
+    func synchronizeItemsWithServer(revision: Int) async -> TodoListResponse?
 }

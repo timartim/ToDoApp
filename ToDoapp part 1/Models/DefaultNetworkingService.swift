@@ -16,37 +16,43 @@ struct TodoListResponse: Codable {
     let revision: Int
 }
 
-struct TodoListElementResponse: Codable{
+struct TodoListElementResponse: Codable {
     let element: TodoItem
 }
 
-struct DefaultNetworkingService {
+struct DefaultNetworkingService: NetworkingService {
     let baseURL = "https://hive.mrdekk.ru/todo"
-    func synchronizeItemsWithServer(revision: String) async -> Bool {
+    func synchronizeItemsWithServer(revision: Int) async -> TodoListResponse? {
         guard let url = URL(string: "\(baseURL)/list") else {
             print("Invalid URL")
-            return false
+            return nil
         }
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(revision, forHTTPHeaderField: "X-Last-Known-Revision")
-        
+        request.setValue("\(revision)", forHTTPHeaderField: "X-Last-Known-Revision")
+
         do {
-            let (responseData, response) = try await session.data(for: request)
+            let (data, response) = try await session.data(for: request)
+            print("Responce getting list: \(response)")
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 print("Invalid response")
-                return false
+                return nil
             }
-            return true
-            
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let todoListResponse = try decoder.decode(TodoListResponse.self, from: data)
+            print("List data: \(todoListResponse)")
+            return todoListResponse
+
         } catch {
             print("Error: \(error.localizedDescription)")
-            return false
+            return nil
         }
     }
-    
+
     let session: URLSession
     let token = "Aegnor"
     init() {
@@ -59,11 +65,11 @@ struct DefaultNetworkingService {
             print("Invalid URL")
             return ([], 0)
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
+
         do {
             let (data, response) = try await session.data(for: request)
             print("Responce getting list: \(response)")
@@ -71,13 +77,13 @@ struct DefaultNetworkingService {
                 print("Invalid response")
                 return ([], 0)
             }
-            
+
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let todoListResponse = try decoder.decode(TodoListResponse.self, from: data)
             print("List data: \(todoListResponse)")
             return (todoListResponse.list, todoListResponse.revision)
-            
+
         } catch {
             print("Error: \(error.localizedDescription)")
             return ([], 0)
@@ -88,25 +94,24 @@ struct DefaultNetworkingService {
             print("Invalid URL")
             return nil
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
         do {
             let (data, response) = try await session.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 print("Invalid response")
                 return nil
             }
-            
+
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let todoListElementResponse = try decoder.decode(TodoListElementResponse.self, from: data)
-            
+
             return todoListElementResponse.element
-            
+
         } catch {
             print("Error: \(error.localizedDescription)")
             return nil
@@ -136,7 +141,7 @@ struct DefaultNetworkingService {
             }
 
             let (responseData, response) = try await session.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 if let responseData = String(data: responseData, encoding: .utf8) {
                     print("Server Response: \(responseData)")
@@ -144,9 +149,9 @@ struct DefaultNetworkingService {
                 print("Invalid response: \(response)")
                 return false
             }
-            
+
             return true
-            
+
         } catch {
             print("Error: \(error.localizedDescription)")
             return false
@@ -157,7 +162,7 @@ struct DefaultNetworkingService {
             print("Invalid URL")
             return false
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -166,17 +171,18 @@ struct DefaultNetworkingService {
         do {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(todoItem)
+            let todoElement = TodoListElementResponse(element: todoItem)
+            let data = try encoder.encode(todoElement)
             request.httpBody = data
-            
+
             let (responseData, response) = try await session.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 print("Invalid response \(response)")
                 return false
             }
             return true
-            
+
         } catch {
             print("Error: \(error.localizedDescription)")
             return false
@@ -187,7 +193,7 @@ struct DefaultNetworkingService {
             print("Invalid URL")
             return false
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -195,13 +201,13 @@ struct DefaultNetworkingService {
         request.setValue("\(revision)", forHTTPHeaderField: "X-Last-Known-Revision")
         do {
             let (responseData, response) = try await session.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 print("Invalid response \(response)")
                 return false
             }
             return true
-            
+
         } catch {
             print("Error: \(error.localizedDescription)")
             return false
