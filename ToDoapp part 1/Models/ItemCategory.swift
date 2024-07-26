@@ -10,12 +10,12 @@ import UIKit
 struct ItemCategory: Identifiable, Hashable, Codable {
     var id: UUID
     var name: String
-    var color: UIColor
+    var color: String
 
     init(id: UUID = UUID(), name: String, color: UIColor) {
         self.id = id
         self.name = name
-        self.color = color
+        self.color = color.toHexString()
     }
 
     enum CodingKeys: String, CodingKey {
@@ -29,14 +29,14 @@ struct ItemCategory: Identifiable, Hashable, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         let colorHex = try container.decode(String.self, forKey: .color)
-        color = UIColor(hex: colorHex) ?? .black
+        color = colorHex
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
-        try container.encode(color.toHexString(), forKey: .color)
+        try container.encode(color, forKey: .color)
     }
 }
 
