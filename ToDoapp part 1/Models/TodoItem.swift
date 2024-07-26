@@ -46,19 +46,19 @@ enum Importance: String, Codable {
         }
     }
 }
-
+@Model
 class TodoItem: Identifiable, ObservableObject, Codable {
     var id: String
     var text: String
     var importancy: Importance
     var deadline: Date?
-    @Published var complete: Bool
+    var complete: Bool
     var creationDate: Date
     var editDate: Date
     var color: String?
     var lastUpdatedBy: String
     var category: ItemCategory?
-
+    var revision: Int = 0
     static let dateFormatter = ISO8601DateFormatter()
 
     static func formattedDateRu(_ date: Date) -> String {

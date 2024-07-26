@@ -20,17 +20,17 @@ final class FileCacheTest: XCTestCase {
     }
 
     func testAddNewTask() {
-        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
+        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: Date())
         
         let result = fileCache.addNewTask(task: task)
         XCTAssertTrue(result, "Task should be added successfully")
-        XCTAssertTrue(fileCache.todoItem[task.id] != nil, "The task should be in the todoItems dictionary")
+        XCTAssertTrue(fileCache.todoItemDict[task.id] != nil, "The task should be in the todoItems dictionary")
         let duplicateResult = fileCache.addNewTask(task: task)
         XCTAssertFalse(duplicateResult, "Duplicate task should not be added")
     }
 
     func testDeleteTask() {
-        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
+        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: Date())
         var _ = fileCache.addNewTask(task: task)
         
         let deletedTask = fileCache.deleteTask(id: task.id)
@@ -53,13 +53,13 @@ final class FileCacheTest: XCTestCase {
         """
         try? loadString.write(to: fileURL, atomically: true, encoding: .utf8)
         fileCache.loadTasks(fileURL: fileURL)
-        let task = fileCache.todoItem["1"]
+        let task = fileCache.todoItemDict["1"]
         XCTAssertNotNil(task, "Task should be loaded successfully")
         XCTAssertEqual(task?.id, "1", "Task id should match")
     }
 
     func testSaveTasks() {
-        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
+        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: Date())
         var _ = fileCache.addNewTask(task: task)
         let fileName = "testSaveTasks.txt"
         let fileManager = FileManager.default
@@ -72,7 +72,7 @@ final class FileCacheTest: XCTestCase {
         try? fileManager.removeItem(at: fileURL)
     }
     func testSaveAndLoadTask(){
-        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: nil)
+        let task = TodoItem(id: "1", text: "Test Task", importancy: .high, deadline: Date(), complete: false, creationDate: Date(), editDate: Date())
         var _ = fileCache.addNewTask(task: task)
         let fileName = "testSaveTasks.txt"
         let fileManager = FileManager.default
@@ -81,7 +81,7 @@ final class FileCacheTest: XCTestCase {
         fileCache.saveTasks(fileURL: fileURL)
         let tempFileCashe = FileCache(todoItem: [])
         tempFileCashe.loadTasks(fileURL: fileURL)
-        let loadTask = tempFileCashe.todoItem["1"]
+        let loadTask = tempFileCashe.todoItemDict["1"]
         XCTAssertNotNil(loadTask, "Task should be loaded successfully")
         XCTAssertEqual(loadTask?.id, "1", "Task id should match")
         try? fileManager.removeItem(at: fileURL)

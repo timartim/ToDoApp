@@ -53,13 +53,14 @@ class CalendarViewController: UIViewController, UITableViewDelegate, UITableView
                 diffrentSection.append(element)
             }
         }
+        print(diffrentSection)
         dates = sectionArray.sorted().map({ TodoItem.formattedDateRu($0) })
         let sortedDateDictionary = dateDict.sorted { $0.key < $1.key }
         let mappedDictionary = sortedDateDictionary.map { (key, value) in
             (TodoItem.formattedDateRu(key), value)
         }
         data = Dictionary(uniqueKeysWithValues: mappedDictionary)
-        if diffrentSection.isEmpty {
+        if !diffrentSection.isEmpty {
             if !dates.contains(diffrentConst) {
                 dates.append(diffrentConst)
             }
@@ -207,14 +208,16 @@ class CalendarViewController: UIViewController, UITableViewDelegate, UITableView
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let date = dates[section]
+        
         return data[date]?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! RoundedTableViewCell
-
         let date = dates[indexPath.section]
         let task = data[date]?[indexPath.row] ?? TodoItem()
+        print("DEADLINE: \(task.deadline)")
+        print("DATA DIFFRENT:  \(data[diffrentConst])")
         cell.configure(with: task)
         cell.taskLabel.text = task.text
         if task.complete {
@@ -227,9 +230,6 @@ class CalendarViewController: UIViewController, UITableViewDelegate, UITableView
             cell.taskLabel.attributedText = nil
             cell.taskLabel.text = task.text
         }
-
-       
-
         cell.configureRoundedCorners(for: indexPath, tableView: tableView)
         return cell
     }

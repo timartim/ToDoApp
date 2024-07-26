@@ -11,24 +11,24 @@ struct ContentView: View {
     @State private var isPresentingCalendarView: Bool = false
     @State private var newItem = TodoItem(id: UUID().uuidString, text: "", importancy: .average, creationDate: Date())
     @State private var revision: Int = 0
+    @EnvironmentObject private var fileCache: FileCache
     private let networkingService = DefaultNetworkingService()
-    
     var body: some View {
         NavigationView {
             ZStack {
                 (colorScheme == .dark ? Color(red: 0.09, green: 0.09, blue: 0.09, opacity: 1.0)
-                    .edgesIgnoringSafeArea(.all) : Color(red: 0.97, green: 0.97, blue: 0.95, opacity: 1.0)
-                    .edgesIgnoringSafeArea(.all))
-                
+                        .edgesIgnoringSafeArea(.all): Color(red: 0.97, green: 0.97, blue: 0.95, opacity: 1.0)
+                        .edgesIgnoringSafeArea(.all))
+
                 VStack {
                     HStack {
                         Text("Выполнено \(completedCount)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                             .padding(.top)
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             withAnimation {
                                 showingCompletedTasks.toggle()
@@ -40,8 +40,8 @@ struct ContentView: View {
                                 .padding(.top)
                         }
                     }
-                    .padding(.horizontal)
-                    
+                        .padding(.horizontal)
+
                     ZStack {
                         Color.white
                             .cornerRadius(15)
@@ -60,10 +60,10 @@ struct ContentView: View {
                                             }
                                         }
                                     }
-                                    .swipeActions(edge: .trailing) {
+                                        .swipeActions(edge: .trailing) {
                                         Button(role: .destructive) {
                                             Task {
-                                                await deleteItemFromServer(id: item.id)
+                                                await deleteItemFromServer(item: item)
                                             }
                                         } label: {
                                             Label("", systemImage: "trash")
@@ -74,10 +74,10 @@ struct ContentView: View {
                                         } label: {
                                             Label("", systemImage: "info.circle")
                                         }
-                                        .tint(.gray)
-                                        
+                                            .tint(.gray)
+
                                     }
-                                    .swipeActions(edge: .leading) {
+                                        .swipeActions(edge: .leading) {
                                         Button {
                                             withAnimation {
                                                 item.complete.toggle()
@@ -93,22 +93,22 @@ struct ContentView: View {
                                         } label: {
                                             Label("Complete", systemImage: "checkmark")
                                         }
-                                        .tint(.green)
+                                            .tint(.green)
                                     }
-                                    .transition(.slide)
-                                    .animation(.easeInOut, value: showingCompletedTasks)
+                                        .transition(.slide)
+                                        .animation(.easeInOut, value: showingCompletedTasks)
                                 }
                             }
-                            .onDelete(perform: deleteItems)
+                                .onDelete(perform: deleteItems)
                         }
-                        .listStyle(PlainListStyle())
-                        .cornerRadius(15)
+                            .listStyle(PlainListStyle())
+                            .cornerRadius(15)
                     }
-                    .padding(.horizontal)
-                    
+                        .padding(.horizontal)
+
                     Spacer()
                 }
-                
+
                 VStack {
                     Spacer()
                     Button(action: {
@@ -122,101 +122,119 @@ struct ContentView: View {
                             .padding()
                     }
                 }
-                .edgesIgnoringSafeArea(.bottom)
+                    .edgesIgnoringSafeArea(.bottom)
             }
-            .navigationTitle("Мои дела")
-            .toolbar(content: {
+                .navigationTitle("Мои дела")
+                .toolbar(content: {
                 ToolbarItem(placement: .topBarTrailing, content: {
-                    VStack{
+                    VStack {
                         Button(action: {
-                            withAnimation{
+                            withAnimation {
                                 isPresentingCalendarView.toggle()
                             }
-                        }){
+                        }) {
                             HStack {
                                 Image(systemName: "calendar")
                             }
                         }
-                        .sheet(isPresented: $isPresentingCalendarView, content: {
+                            .sheet(isPresented: $isPresentingCalendarView, content: {
                             CalendarViewControllerRepresentable(isPresented: $isPresentingCalendarView, todoItemList: .constant(todoItems))
                         })
                     }
                 })
             })
         }
-        .sheet(isPresented: $isPresentingEditView) {
+            .sheet(isPresented: $isPresentingEditView) {
             EditTaskView(item: selectedItem ?? newItem, isPresented: $isPresentingEditView)
                 .onDisappear {
-                    Task {
-                        if let selectedItem = selectedItem {
-                            if !selectedItem.text.isEmpty {
-                                if !todoItems.todoItems.contains(where: { $0.id == selectedItem.id }) {
-                                    todoItems.addNewTask(task: selectedItem)
-                                    await addItemToServer(item: selectedItem)
-                                } else {
-                                    await updateItemOnServer(item: selectedItem)
-                                }
+                Task {
+                    if let selectedItem = selectedItem {
+                        if !selectedItem.text.isEmpty {
+                            if !todoItems.todoItems.contains(where: { $0.id == selectedItem.id }) {
+                                todoItems.addNewTask(task: selectedItem)
+                                await addItemToServer(item: selectedItem)
+                            } else {
+                                await updateItemOnServer(item: selectedItem)
                             }
-                        } else if !newItem.text.isEmpty {
-                            todoItems.addNewTask(task: newItem)
-                            await addItemToServer(item: newItem)
                         }
+                    } else if !newItem.text.isEmpty {
+                        todoItems.addNewTask(task: newItem)
+                        await addItemToServer(item: newItem)
                     }
                 }
+            }
         }
-        .onAppear {
+            .onAppear {
             Task {
                 await loadTodoItems()
             }
         }
     }
-    
+
     private func addItemToServer(item: TodoItem) async {
+        do {
+            try await fileCache.insert(item)
+        } catch {
+            print("could not add localy, error occured")
+        }
         await checkIfDirty()
         let success = await networkingService.addItemToServer(todoItem: item, revision: revision)
-        if success {
-            await loadTodoItems()
-        }else{
-            todoItems.isDirty = true
-        }
+        await loadTodoItems()
     }
     private func updateItemOnServer(item: TodoItem) async {
+        do {
+            try await fileCache.update(item)
+        } catch {
+            print("could not been updated localy, error occured")
+        }
         await checkIfDirty()
         let success = await networkingService.updateItemOnServer(todoItem: item, revision: revision)
-        if success {
-            await loadTodoItems()
-        }else{
-            todoItems.isDirty = true
-        }
+        await loadTodoItems()
     }
-    
-    private func deleteItemFromServer(id: String) async {
+
+    private func deleteItemFromServer(item: TodoItem) async {
+        do {
+            try await fileCache.delete(item)
+        } catch {
+            print("could not delete localy, error occured")
+        }
         await checkIfDirty()
-        let success = await networkingService.deleteItemFromServer(id: id, revision: revision)
-        if success {
-            await loadTodoItems()
-        }else{
-            todoItems.isDirty = true
-        }
+        let success = await networkingService.deleteItemFromServer(id: item.id, revision: revision)
+        await loadTodoItems()
     }
-    
+
     private func loadTodoItems() async {
-        let (items, rev) = await networkingService.getListFromServer()
-        print("Revision before: \(revision)")
-        revision = rev
-        print("Revision after: \(revision)")
-        DispatchQueue.main.async {
+        do {
+//            try await networkingService.loadItemFromLocalFiles(fileCache: fileCache, revision: revision)
+            let (items, rev) = try await networkingService.getListFromServer()
+            print("Revision before: \(revision)")
+            revision = rev
+            print("Revision after: \(revision)")
             todoItems.todoItems = items
             completedCount = items.filter { $0.complete }.count
+            if !todoItems.isDirty{
+                try await fileCache.updateStorage(todoItems.todoItems)
+            }
+            
+            print("FETCHING FILES: \(try await fileCache.fetch())")
+        } catch {
+            print("NETWROKING ERROR OCCURED")
+            todoItems.isDirty = true
+            do {
+                todoItems.todoItems = try await fileCache.fetch()
+            } catch {
+                print("Could not even fetch localy, sry")
+            }
+
         }
     }
-    
+
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
                 let item = todoItems.todoItems[index]
                 Task {
-                    await deleteItemFromServer(id: item.id)
+                    await deleteItemFromServer(item: item)
                 }
                 if item.complete {
                     completedCount -= 1
@@ -225,9 +243,9 @@ struct ContentView: View {
             }
         }
     }
-    private func checkIfDirty() async{
+    private func checkIfDirty() async {
         if todoItems.isDirty {
-            if let answer = await networkingService.synchronizeItemsWithServer(revision: revision){
+            if let answer = await networkingService.synchronizeItemsWithServer(revision: revision) {
                 todoItems.isDirty = true
                 todoItems.todoItems = answer.list
                 revision = answer.revision
@@ -237,7 +255,7 @@ struct ContentView: View {
 }
 func createTodoItems(_ num: Int) -> [TodoItem] {
     var items = [TodoItem]()
-    
+
     let texts = [
         "Long Task, Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids. Buy groceries for the week, including fresh vegetables, fruits, dairy products, and some snacks for the kids.",
         "Call mom to check in and see how she's doing. Don't forget to ask.",
@@ -250,9 +268,9 @@ func createTodoItems(_ num: Int) -> [TodoItem] {
         "Workout session at the gym, focusing on strength training exercises. Don't forget to do a proper warm-up and cool-down.",
         "Plan the trip to the mountains for the upcoming holiday. Make a list of all the necessary gear and supplies to pack."
     ]
-    
+
     let importanceLevels: [Importance] = [.low, .average, .high]
-    
+
     for idx in 0..<num {
         let text = texts[idx % texts.count]
         let importance = importanceLevels[Int.random(in: 0..<importanceLevels.count)]
@@ -269,10 +287,10 @@ func createTodoItems(_ num: Int) -> [TodoItem] {
             editDate: Date.now,
             category: nil
         )
-        
+
         items.append(item)
     }
-    
+
     return items
 }
 #Preview {

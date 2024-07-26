@@ -8,9 +8,11 @@
 import Foundation
 class TodoItemArray: ObservableObject, Codable {
     @Published public var todoItems: [TodoItem]
+    public var fileCache: FileCache
     public var isDirty: Bool = false
-    init(todoItems: [TodoItem] = []) {
+    init(todoItems: [TodoItem] = [], fileCache: FileCache = FileCache(todoItem: [])) {
         self.todoItems = todoItems
+        self.fileCache = fileCache
     }
 
     enum CodingKeys: String, CodingKey {
@@ -20,6 +22,7 @@ class TodoItemArray: ObservableObject, Codable {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         todoItems = try container.decode([TodoItem].self, forKey: .todoItems)
+        fileCache = FileCache(todoItem: [])
     }
 
     func encode(to encoder: Encoder) throws {

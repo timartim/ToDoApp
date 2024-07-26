@@ -56,7 +56,7 @@ class RoundedTableViewCell: UITableViewCell {
     func configure(with item: TodoItem) {
         taskLabel.text = item.text
         if let category = item.category {
-            categoryColorView.backgroundColor = category.color
+            categoryColorView.backgroundColor = UIColor(hex: category.color)
         } else {
             categoryColorView.backgroundColor = .clear
         }

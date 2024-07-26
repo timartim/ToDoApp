@@ -14,14 +14,19 @@ class CustomSessionDelegate: NSObject, URLSessionDelegate {
 struct TodoListResponse: Codable {
     let list: [TodoItem]
     let revision: Int
+    init() {
+        list = []
+        revision = 0
+    }
 }
 
 struct TodoListElementResponse: Codable {
     let element: TodoItem
 }
 
-struct DefaultNetworkingService: NetworkingService {
+class DefaultNetworkingService: NetworkingService {
     let baseURL = "https://hive.mrdekk.ru/todo"
+    var lastTodoResponse = TodoListResponse()
     func synchronizeItemsWithServer(revision: Int) async -> TodoListResponse? {
         guard let url = URL(string: "\(baseURL)/list") else {
             print("Invalid URL")
@@ -60,7 +65,7 @@ struct DefaultNetworkingService: NetworkingService {
         let config = URLSessionConfiguration.default
         self.session = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: nil)
     }
-    func getListFromServer() async -> ([TodoItem], Int) {
+    func getListFromServer() async throws -> ([TodoItem], Int) {
         guard let url = URL(string: "\(baseURL)/list") else {
             print("Invalid URL")
             return ([], 0)
@@ -69,25 +74,19 @@ struct DefaultNetworkingService: NetworkingService {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        do {
-            let (data, response) = try await session.data(for: request)
-            print("Responce getting list: \(response)")
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("Invalid response")
-                return ([], 0)
-            }
-
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            let todoListResponse = try decoder.decode(TodoListResponse.self, from: data)
-            print("List data: \(todoListResponse)")
-            return (todoListResponse.list, todoListResponse.revision)
-
-        } catch {
-            print("Error: \(error.localizedDescription)")
-            return ([], 0)
+        let (data, response) = try await session.data(for: request)
+        print("Responce getting list: \(response)")
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "TodoItemErrorDomain", code: 404, userInfo: [NSLocalizedDescriptionKey: "Incorrect response from server"])
         }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let todoListResponse = try decoder.decode(TodoListResponse.self, from: data)
+        print("List data: \(todoListResponse)")
+        lastTodoResponse = todoListResponse
+        lastTodoResponse.list.map { $0.revision = todoListResponse.revision }
+        return (todoListResponse.list, todoListResponse.revision)
     }
     func getItemFromServer(id: String) async -> TodoItem? {
         guard let url = URL(string: "\(baseURL)/\(id)") else {
@@ -157,12 +156,28 @@ struct DefaultNetworkingService: NetworkingService {
             return false
         }
     }
+    func loadItemFromLocalFiles(fileCache: FileCache, revision: Int) async {
+        for key in fileCache.todoItemDict.keys {
+            if let todoItem = fileCache.todoItemDict[key] {
+                if(!lastTodoResponse.list.contains([todoItem])) {
+                    var _ = await addItemToServer(todoItem: todoItem, revision: todoItem.revision)
+                }else{
+                    var _ = await updateItemOnServer(todoItem: todoItem, revision: todoItem.revision)
+                }
+            }
+        }
+        for element in lastTodoResponse.list{
+            if fileCache.todoItemDict[element.id] == nil {
+                var _ = await deleteItemFromServer(id: element.id, revision: element.revision)
+            }
+        }
+
+    }
     func updateItemOnServer(todoItem: TodoItem, revision: Int) async -> Bool {
         guard let url = URL(string: "\(baseURL)/list/\(todoItem.id)") else {
             print("Invalid URL")
             return false
         }
-
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
